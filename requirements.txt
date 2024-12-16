@@ -1,0 +1,8 @@
+numpy
+pandas
+torch
+torchvision
+pytorch_lightning
+ultralytics
+scikit-learn
+pillow
