@@ -2,15 +2,7 @@ from torchvision.models.detection import fasterrcnn_resnet50_fpn
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from ultralytics import YOLO
 
-LABEL_MAP = {
-    "aegypti": 0,
-    "albopictus": 1,
-    "anopheles": 2,
-    "culex": 3,
-    "culiseta": 4,
-    "japonicus/koreicus": 5,
-    "None": 6,
-}
+from .utils import LABEL_MAP
 
 
 def get_fasterrcnn():
