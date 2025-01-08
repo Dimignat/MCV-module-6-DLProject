@@ -1,0 +1,11 @@
+[flake8]
+exclude=
+    .git
+    .meta
+    .tox
+    venv
+
+extend-ignore = E203
+
+max-complexity=10
+max-line-length=88

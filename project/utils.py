@@ -52,7 +52,7 @@ def parse_label(path: Path) -> tuple[str, float, float, float, float]:
     with open(path) as f:
         line = f.readline()
     splt = line.split()
-    label, xcenter, ycenter, w, h = tuple((map(float, splt)))
+    label, xcenter, ycenter, w, h = tuple(map(float, splt))
     return int(label), xcenter, ycenter, w, h
 
 

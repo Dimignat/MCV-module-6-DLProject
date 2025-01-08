@@ -10,9 +10,15 @@ from ultralytics import YOLO
 
 from .datasets import FasterRCNNDataset
 from .models import get_fasterrcnn, get_yolo
-from .utils import (INV_LABEL_MAP, TEST_IMAGES_PATHS, TRAIN_EPOCHS,
-                    TRAIN_IMAGES_PATHS, TRAIN_LABELS_PATHS, VAL_IMAGES_PATHS,
-                    VAL_LABELS_PATHS)
+from .utils import (
+    INV_LABEL_MAP,
+    TEST_IMAGES_PATHS,
+    TRAIN_EPOCHS,
+    TRAIN_IMAGES_PATHS,
+    TRAIN_LABELS_PATHS,
+    VAL_IMAGES_PATHS,
+    VAL_LABELS_PATHS,
+)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--mode", type=str, choices=["train", "test"])
