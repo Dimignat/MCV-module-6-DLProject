@@ -5,6 +5,7 @@ import pandas as pd
 import pytorch_lightning as pl
 import torch
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 from torch.utils.data import DataLoader
 from ultralytics import YOLO
 
@@ -73,7 +74,7 @@ def _train_fastercnn():
     train_ds = FasterRCNNDataset(TRAIN_IMAGES_PATHS, TRAIN_LABELS_PATHS)
     val_ds = FasterRCNNDataset(VAL_IMAGES_PATHS, VAL_LABELS_PATHS)
     train_dl = DataLoader(train_ds, batch_size=8, shuffle=True, collate_fn=lambda x: x)
-    val_dl = DataLoader(val_ds, batch_size=8, shuffle=True, collate_fn=lambda x: x)
+    val_dl = DataLoader(val_ds, batch_size=8, shuffle=False, collate_fn=lambda x: x)
 
     accelerator = "gpu" if torch.cuda.is_available() else "cpu"
     optimizer = torch.optim.SGD(
@@ -84,31 +85,49 @@ def _train_fastercnn():
     early_stopping = EarlyStopping(
         monitor="val_loss", patience=3, verbose=True, mode="min"
     )
+    checkpoint_callback = ModelCheckpoint(save_top_k=1, monitor="val_loss", mode="min")
     trainer = pl.Trainer(
-        callbacks=[early_stopping], max_epochs=TRAIN_EPOCHS, accelerator=accelerator
+        callbacks=[early_stopping, checkpoint_callback],
+        max_epochs=TRAIN_EPOCHS,
+        accelerator=accelerator,
     )
     trainer.fit(mosquito_detector, train_dl, val_dl)
 
 
 def _test_fastercnn(checkp_path: Path):
-    test_ds = FasterRCNNDataset(TEST_IMAGES_PATHS)
+    test_ds = FasterRCNNDataset(TEST_IMAGES_PATHS, None)
     test_dl = DataLoader(test_ds, batch_size=8, shuffle=True, collate_fn=lambda x: x)
-    model = MosquitoDetector.load_from_checkpoint(checkp_path)
-    predictions = model.eval(test_dl)
+    model = get_fasterrcnn(False)
+    checkpoint = torch.load(checkp_path)
+    model.load_state_dict(
+        {k[len("model.") :]: v for k, v in checkpoint["state_dict"].items()}
+    )
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-    data = []
-    for pred in predictions:
-        x1, y1, x2, y2 = pred["boxes"][0].cpu().numpy()
-        res = {
-            "LabelName": INV_LABEL_MAP[int(pred["labels"][0].cpu().numpy())],
-            "Conf": float(pred["scores"][0].cpu().numpy()),
-            "xcenter": float((x1 + x2) / 2) / 224,
-            "ycenter": float((y1 + y2) / 2) / 224,
-            "bbx_width": float(x2 - x1) / 224,
-            "bbx_height": float(y2 - y1) / 224,
-        }
-        data.append(res)
-    df = pd.DataFrame(data)
+    model.eval()
+    model.to(device)
+
+    preds = []
+    with torch.no_grad():
+        for data in test_dl:
+            imgs = []
+            for d in data:
+                imgs.append(d["img"].to(device))
+            predictions = model(imgs)
+            for pred in predictions:
+                x1, y1, x2, y2 = pred["boxes"][0].cpu().numpy()
+                res = {
+                    "LabelName": INV_LABEL_MAP[int(pred["labels"][0].cpu().numpy())],
+                    "Conf": float(pred["scores"][0].cpu().numpy()),
+                    "xcenter": float((x1 + x2) / 2) / 224,
+                    "ycenter": float((y1 + y2) / 2) / 224,
+                    "bbx_width": float(x2 - x1) / 224,
+                    "bbx_height": float(y2 - y1) / 224,
+                }
+                preds.append(res)
+
+    df = pd.DataFrame(preds)
+    df["ImageID"] = [p.name for p in TEST_IMAGES_PATHS]
     sample = pd.read_csv("dlp-object-detection-224/sample_submission.csv")
     sample[["id", "ImageID"]].merge(df, on="ImageID").to_csv(
         "fasterrcnn-res.csv", index=False

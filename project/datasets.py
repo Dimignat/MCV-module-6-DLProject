@@ -15,12 +15,21 @@ class FasterRCNNDataset(Dataset):
         self.labels_paths = labels_paths
         self.train = bool(labels_paths)
         self.size = 224
-        self.transforms = v2.Compose(
+        self.train_transforms = v2.Compose(
             [
                 v2.ConvertBoundingBoxFormat("XYXY"),
                 v2.PILToTensor(),
                 v2.Resize(size=(self.size, self.size), antialias=True),
                 v2.RandomHorizontalFlip(p=0.5),
+                v2.ToDtype(torch.float32, scale=True),
+                v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            ]
+        )
+        self.test_transforms = v2.Compose(
+            [
+                v2.ConvertBoundingBoxFormat("XYXY"),
+                v2.PILToTensor(),
+                v2.Resize(size=(self.size, self.size), antialias=True),
                 v2.ToDtype(torch.float32, scale=True),
                 v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
             ]
@@ -43,9 +52,10 @@ class FasterRCNNDataset(Dataset):
                 dtype=torch.float32,
                 canvas_size=(img_h, img_w),
             )
-            img, bbox = self.transforms(img, bbox)
+            img, bbox = self.train_transforms(img, bbox)
             klass = torch.tensor([klass])
         else:
             klass, bbox = None, None
+            img = self.test_transforms(img)
 
         return {"klass": klass, "bbox": bbox, "img": img}
