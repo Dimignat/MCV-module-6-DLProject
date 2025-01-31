@@ -1,0 +1,18 @@
+ROOT_DS_DIR: dlp-object-detection
+TRAIN_IMAGES_DIR: dlp-object-detection/final_dlp_data/final_dlp_data/train/images
+TRAIN_LABELS_DIR: dlp-object-detection/final_dlp_data/final_dlp_data/train/labels
+VAL_IMAGES_DIR: dlp-object-detection/final_dlp_data/final_dlp_data/val/images
+VAL_LABELS_DIR: dlp-object-detection/final_dlp_data/final_dlp_data/val/labels
+TEST_IMAGES_DIR: dlp-object-detection/final_dlp_data/final_dlp_data/test/images
+
+SEED: 42
+TRAIN_EPOCHS: 100
+LABEL_MAP: {
+    "aegypti": 0,
+    "albopictus": 1,
+    "anopheles": 2,
+    "culex": 3,
+    "culiseta": 4,
+    "japonicus/koreicus": 5,
+    "None": 6,
+}

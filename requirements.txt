@@ -6,4 +6,5 @@ pytorch_lightning
 ultralytics
 scikit-learn
 pillow
-pre-commitpip install pre-commit
+pre-commit
+pyyaml

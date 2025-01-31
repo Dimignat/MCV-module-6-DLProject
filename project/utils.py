@@ -5,27 +5,33 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import yaml
 from PIL import Image
 from sklearn.model_selection import train_test_split
 
-ROOT_DS_DIR = Path("dlp-object-detection")
-TRAIN_IMAGES_DIR = Path(
-    "dlp-object-detection/final_dlp_data/final_dlp_data/train/images"
-)
-TRAIN_LABELS_DIR = Path(
-    "dlp-object-detection/final_dlp_data/final_dlp_data/train/labels"
-)
-VAL_IMAGES_DIR = Path("dlp-object-detection/final_dlp_data/final_dlp_data/val/images")
-VAL_LABELS_DIR = Path("dlp-object-detection/final_dlp_data/final_dlp_data/val/labels")
-TEST_IMAGES_DIR = Path("dlp-object-detection/final_dlp_data/final_dlp_data/test/images")
 
+def load_config(path: Path):
+    with open(path) as f:
+        cfg = yaml.safe_load(f)
+    return cfg
+
+
+config = load_config(Path("project/config.yaml"))
+
+
+ROOT_DS_DIR = config["ROOT_DS_DIR"]
+TRAIN_IMAGES_DIR = config["TRAIN_IMAGES_DIR"]
+TRAIN_LABELS_DIR = config["TRAIN_LABELS_DIR"]
+VAL_IMAGES_DIR = config["VAL_IMAGES_DIR"]
+VAL_LABELS_DIR = config["VAL_LABELS_DIR"]
+TEST_IMAGES_DIR = config["TEST_IMAGES_DIR"]
 TRAIN_IMAGES_PATHS = sorted(TRAIN_IMAGES_DIR.glob("*"))
 TRAIN_LABELS_PATHS = [TRAIN_LABELS_DIR / (p.stem + ".txt") for p in TRAIN_IMAGES_PATHS]
 VAL_IMAGES_PATHS = sorted(VAL_IMAGES_DIR.glob("*"))
 VAL_LABELS_PATHS = [VAL_LABELS_DIR / (p.stem + ".txt") for p in VAL_IMAGES_PATHS]
 TEST_IMAGES_PATHS = sorted(TEST_IMAGES_DIR.glob("*"))
 
-SEED = 42
+SEED = config["SEED"]
 random.seed(SEED)
 os.environ["PYTHONHASHSEED"] = str(SEED)
 np.random.seed(SEED)
@@ -33,18 +39,7 @@ torch.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
-TRAIN_EPOCHS = 100
-
-
-LABEL_MAP = {
-    "aegypti": 0,
-    "albopictus": 1,
-    "anopheles": 2,
-    "culex": 3,
-    "culiseta": 4,
-    "japonicus/koreicus": 5,
-    "None": 6,
-}
+LABEL_MAP = config["LABEL_MAP"]
 INV_LABEL_MAP = {v: k for k, v in LABEL_MAP.items()}
 
 
