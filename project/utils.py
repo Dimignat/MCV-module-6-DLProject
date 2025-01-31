@@ -19,12 +19,12 @@ def load_config(path: Path):
 config = load_config(Path("project/config.yaml"))
 
 
-ROOT_DS_DIR = config["ROOT_DS_DIR"]
-TRAIN_IMAGES_DIR = config["TRAIN_IMAGES_DIR"]
-TRAIN_LABELS_DIR = config["TRAIN_LABELS_DIR"]
-VAL_IMAGES_DIR = config["VAL_IMAGES_DIR"]
-VAL_LABELS_DIR = config["VAL_LABELS_DIR"]
-TEST_IMAGES_DIR = config["TEST_IMAGES_DIR"]
+ROOT_DS_DIR = Path(config["ROOT_DS_DIR"])
+TRAIN_IMAGES_DIR = Path(config["TRAIN_IMAGES_DIR"])
+TRAIN_LABELS_DIR = Path(config["TRAIN_LABELS_DIR"])
+VAL_IMAGES_DIR = Path(config["VAL_IMAGES_DIR"])
+VAL_LABELS_DIR = Path(config["VAL_LABELS_DIR"])
+TEST_IMAGES_DIR = Path(config["TEST_IMAGES_DIR"])
 TRAIN_IMAGES_PATHS = sorted(TRAIN_IMAGES_DIR.glob("*"))
 TRAIN_LABELS_PATHS = [TRAIN_LABELS_DIR / (p.stem + ".txt") for p in TRAIN_IMAGES_PATHS]
 VAL_IMAGES_PATHS = sorted(VAL_IMAGES_DIR.glob("*"))
@@ -87,11 +87,13 @@ def copy_and_resize_ds(path: Path, size: int):
 
 
 def split_ds(path: Path):
+    train_labels = [parse_label(p)[0] for p in TRAIN_LABELS_PATHS]
     train_paths, val_paths, train_txt, val_txt = train_test_split(
         TRAIN_IMAGES_PATHS,
         TRAIN_LABELS_PATHS,
+        stratify=train_labels,
         random_state=SEED,
-        shuffle=False,
+        shuffle=True,
         test_size=0.2,
     )
 
