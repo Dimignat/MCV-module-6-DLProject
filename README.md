@@ -5,8 +5,8 @@ project.utils.split_ds("dlp-object-detection")
 ```
 2. Resize images
 ```python
-project.utils.copy_and_resize_ds("dlp-object-detection", 224) # for fasterrcnn
-project.utils.copy_and_resize_ds("dlp-object-detection", 640) # for yolo
+project.utils.resize_ds("dlp-object-detection", 224) # for fasterrcnn
+project.utils.resize_ds("dlp-object-detection", 640) # for yolo
 ```
 
 ### Train models
