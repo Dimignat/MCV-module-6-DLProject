@@ -62,28 +62,25 @@ def load_data() -> tuple[
     return train_images, train_labels, test_images
 
 
-def resize(img: Image.Image, size: int) -> Image.Image:
+def resize_image(img: Image.Image, size: int) -> Image.Image:
     img_new = img.resize((size, size), Image.LANCZOS)
     return img_new
 
 
-def copy_and_resize_ds(path: Path, size: int):
-    new_root = list(path.parts)[0] + "-" + str(size)
-    for i, path in enumerate(ROOT_DS_DIR.rglob("*")):
-        if path.is_dir():
+def resize_ds(root_path: Path, size: int, threshold_size: int = 0):
+    delete_stems = set()
+    for _, path in enumerate(root_path.rglob("*.jpeg")):
+        img = Image.open(path)
+        if img.size[0] < threshold_size or img.size[1] < threshold_size:
+            delete_stems.add(path.stem)
+            path.unlink()
             continue
+        img = resize_image(img, size)
+        img.save(path)
 
-        parts = list(path.parts)
-        parts[0] = new_root
-        new_path = Path(*parts)
-        new_path.parent.mkdir(parents=True, exist_ok=True)
-
-        if path.suffix == ".jpeg":
-            img = Image.open(path)
-            img = resize(img, size)
-            img.save(new_path)
-        else:
-            shutil.copy(path, new_path)
+    for _, path in enumerate(root_path.rglob("*.txt")):
+        if path.stem in delete_stems:
+            path.unlink()
 
 
 def split_ds(path: Path):
